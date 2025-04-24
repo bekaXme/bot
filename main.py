@@ -1,4 +1,5 @@
 import logging
+import os
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 from PIL import Image
@@ -17,8 +18,8 @@ logger = logging.getLogger(__name__)
 # Admin IDs
 ADMIN_IDS = [5703082829, 2100140929]
 
-# Bot token
-BOT_TOKEN = "8179327395:AAFKk65Cp1AUfmaXLB5WOZaV0BB2WEY41xo"
+# Get the bot token from environment variables
+BOT_TOKEN = os.getenv("8179327395:AAFKk65Cp1AUfmaXLB5WOZaV0BB2WEY41xo")
 
 # FastAPI app for webhook
 app = FastAPI()
